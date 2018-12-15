@@ -1,0 +1,24 @@
+{
+	"name": "telegram/TelegramBot",
+	"description": "Bot for Telegram",
+	"authors": [
+		{
+			"name": "Max",
+			"email": "n@n.com"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"TelegramBot\\": ["classes/"]
+		}
+	},
+	"repositories": [
+		
+	],
+	"require": {
+		
+	},
+	"require-dev": {
+		"phpunit/phpunit": "5.7.*"
+	}
+}
