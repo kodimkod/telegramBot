@@ -39,7 +39,7 @@ $facade = new DatabaseFacade($dbConnection, $factory);
 $excludedUsers = $facade->getUsersExcludedFromBans();
 //$excludedContent = $facade->getContentExcludedFromBans();
 $rights = new BotRights($config, $excludedUsers);
-$templates = new BotTemplates();
+$templates = new BotTemplates($config);
 $controller = new BotController($config, $messages, $facade, $factory, $rights, $templates);
 try {
     $controller->run();

@@ -43,6 +43,21 @@ class BotConfig
     protected $botId;
 
     /**
+     * @var string
+     */
+    protected $welcomeUserName;
+
+    /**
+     * @var int
+     */
+    protected $welcomeUserId;
+
+    /**
+     * @var int
+     */
+    protected $welcomeUserGroupId;
+
+    /**
      * @var array
      */
     protected $ownGroupIds;
@@ -58,6 +73,9 @@ class BotConfig
         $this->dbUser = $ini_array['dbUser'];
         $this->dbPassword = $ini_array['dbPassword'];
         $this->botId = $ini_array['botId'];
+        $this->welcomeUserName = $ini_array['welcomeUserName'];
+        $this->welcomeUserId = $ini_array['welcomeUserId'];
+        $this->welcomeUserGroupId = $ini_array['welcomeUserGroupId'];
         $this->ownGroupIds = $ini_array['ownGroupIds'];
     }
 
@@ -134,6 +152,30 @@ class BotConfig
     }
 
     /**
+     * @return string
+     */
+    public function getWelcomeUserName(): string
+    {
+        return $this->welcomeUserName;
+    }
+
+    /**
+     * @return int
+     */
+    public function getWelcomeUserId(): string
+    {
+        return $this->welcomeUserId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWelcomeUserGroupId(): string
+    {
+        return $this->welcomeUserGroupId;
+    }
+
+    /**
      * @return array
      */
     public function getFriendGroupsWhereBotWorks(): array
@@ -166,8 +208,17 @@ class BotConfig
         if (!isset($settings['botId']) || strlen($settings['botId']) < 5) {
             throw new UnexpectedValueException('Wrong bot id, probably less than 5 characters.');
         }
+        if (!isset($settings['welcomeUserName']) || strlen($settings['welcomeUserName']) < 2) {
+            throw new UnexpectedValueException('Wrong welcome user name, probably less than 2 characters.');
+        }
+        if (!isset($settings['welcomeUserId']) || strlen($settings['welcomeUserId']) < 5) {
+            throw new UnexpectedValueException('Wrong welcome user id, probably less than 5 characters.');
+        }
+        if (!isset($settings['welcomeUserGroupId']) || strlen($settings['welcomeUserGroupId']) < 5) {
+            throw new UnexpectedValueException('Wrong welcome user group id, probably less than 5 characters.');
+        }
         if (!isset($settings['ownGroupIds']) || !is_array($settings['ownGroupIds'])) {
-            throw new UnexpectedValueException('Wrong own groups, not array?.');
+            throw new UnexpectedValueException('Wrong own groups, not array?');
         }
     }
 
