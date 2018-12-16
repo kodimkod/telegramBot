@@ -63,7 +63,6 @@ class ContentExtractor
         return 0;
     }
 
-    
     /**
      * @return int 
      */
@@ -78,7 +77,7 @@ class ContentExtractor
         }
         return [];
     }
-    
+
     /**
      * @return string 
      */
@@ -290,6 +289,21 @@ class ContentExtractor
     {
         $is_arabic = preg_match('/\p{Arabic}/u', $string);
         if ($is_arabic == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param type $text
+     * @return bool
+     */
+    public function messageContains($text): bool
+    {
+        $message = $this->getMessageContent();
+        $contentReady = preg_quote($text, '/');
+        $isExcepted = preg_match('/' . $contentReady . '/ui', $message);
+        if ($isExcepted == 1) {
             return true;
         }
         return false;

@@ -37,8 +37,8 @@ $dbConnection = DatabaseConnection::fromParameters($config->getDatabaseHost(), $
 $factory = new Factory();
 $facade = new DatabaseFacade($dbConnection, $factory);
 $excludedUsers = $facade->getUsersExcludedFromBans();
-//$excludedContent = $facade->getContentExcludedFromBans();
-$rights = new BotRights($config, $excludedUsers);
+$excludedContent = $facade->getContentExcludedFromBans();
+$rights = new BotRights($config, $excludedUsers, $excludedContent);
 $templates = new BotTemplates($config);
 $controller = new BotController($config, $messages, $facade, $factory, $rights, $templates);
 try {

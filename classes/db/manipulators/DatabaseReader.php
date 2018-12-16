@@ -44,5 +44,42 @@ class DatabaseReader extends DatabaseManipulator
         }
         return iterator_to_array($results);
     }
+    
+        /**
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getContentExcludedFromBans(): array
+    {
+        $query = $this->factory->getReadContentExcludedFromBansQuery();
+        try {
+            $results = $query->fetch($this->connection)->getIterator();
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error reading content excluded from bans: ' . $exception->getMessage());
+        }
+        if (count($results) == 0) {
+            return [];
+        }
+        return iterator_to_array($results);
+    }
+    
+       
+        /**
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getSpam(): array
+    {
+        $query = $this->factory->getReadSpamQuery();
+        try {
+            $results = $query->fetch($this->connection)->getIterator();
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error reading spam: ' . $exception->getMessage());
+        }
+        if (count($results) == 0) {
+            return [];
+        }
+        return iterator_to_array($results);
+    }
 
 }

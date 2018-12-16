@@ -78,5 +78,31 @@ class BotTemplates
         }
         return $message;
     }
+    
+      /**
+     * @param array $bannedUser
+     * @param ContentExtractor $extractor
+     * @return string
+     */
+    public function getSpamUserText($bannedUser, ContentExtractor $extractor): string
+    {
+        $name = $extractor->getNameFromUser($bannedUser);
+        $id = $extractor->getIdFromUser($bannedUser);
+        $rand = rand(1, 2);
+        switch ($rand) {
+            case 1:
+                $message = "
+     За спам [" . $name . "](tg://user?id=" . $id . ") утихомирен. Я тебя предупреждал, пёс! 😡😡😡
+            ";
+                break;
+            case 2:
+            default:
+                $message = "
+     За рекламу [" . $name . "](tg://user?id=" . $id . ") в бан попал! Уймись, собака! 😤😤😤
+            ";
+                break;
+        }
+        return $message;
+    }
 
 }

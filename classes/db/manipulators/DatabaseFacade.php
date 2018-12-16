@@ -37,7 +37,7 @@ class DatabaseFacade
     {
         return $this->reader->readLastMessageOffset();
     }
-    
+
     /**
      * @param string $messageId
      * @param string $type
@@ -46,15 +46,33 @@ class DatabaseFacade
      * @param string $content
      * @return int
      */
-    public function writeNormalMessageLog($messageId, $type, $groupId, $groupName,  string $content) {
+    public function writeNormalMessageLog($messageId, $type, $groupId, $groupName, string $content)
+    {
         return $this->writer->writeNormalMessageLog($messageId, $type, $groupId, $groupName, $content);
     }
 
     /**
      * @return array
      */
-   public function getUsersExcludedFromBans() 
-   {
-       return $this->reader->getUsersExcludedFromBans();
-   }
+    public function getUsersExcludedFromBans()
+    {
+        return $this->reader->getUsersExcludedFromBans();
+    }
+
+    /**
+     * @return array
+     */
+    public function getContentExcludedFromBans()
+    {
+        return $this->reader->getContentExcludedFromBans();
+    }
+
+    /**
+     * @return array
+     */
+    public function getSpam()
+    {
+        return $this->reader->getSpam();
+    }
+
 }

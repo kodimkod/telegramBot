@@ -20,11 +20,16 @@ class BotRights
      */
     protected $contentExcludedFromBan;
 
-    public function __construct(BotConfig $configuration, array $excludedUsers)
+    /**
+     * @param \TelegramBot\BotConfig $configuration
+     * @param array $excludedUsers
+     * @param array $excludedContent
+     */
+    public function __construct(BotConfig $configuration, array $excludedUsers, array $excludedContent)
     {
         $this->configuration = $configuration;
         $this->usersExcludedFromBan = $excludedUsers;
-        $this->contentExcludedFromBan = [];
+        $this->contentExcludedFromBan = $excludedContent;
     }
 
     /**
@@ -63,7 +68,10 @@ class BotRights
     public function contentIsExcludedFromBans($text): bool
     {
         foreach ($this->contentExcludedFromBan as $content) {
-            if ($content == $text) {
+            $contentText = isset($content['content']) ? $content['content'] : '';
+            $contentReady = preg_quote($contentText, '/');
+            $isExcepted = preg_match('/' . $contentReady . '/ui', $text);
+            if ($isExcepted == 1) {
                 return true;
             }
         }

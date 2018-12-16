@@ -46,6 +46,26 @@ class TelegramMessages
         curl_close($ch);
         return $this->decodeResult($result);
     }
+    
+       /**
+     * @param string $token
+     * @param int $chatId
+     * @param int $messageId
+     * @return type
+     */
+    public function deleteMessage(string $token, $chatId, $messageId)
+    {
+        $requestUrl = self::ApiUrl . $token . '/deleteMessage';
+        $params = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId
+        ];
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
 
     /**
      * @param string $token

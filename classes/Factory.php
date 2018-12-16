@@ -70,4 +70,20 @@ class Factory
         return new ReadUsersExcludedFromBansQuery();
     }
 
+    /**
+     * @return ReadContentExcludedFromBansQuery
+     */
+    public function getReadContentExcludedFromBansQuery(): ReadContentExcludedFromBansQuery
+    {
+        return new ReadContentExcludedFromBansQuery();
+    }
+
+    /**
+     * @return ReadSpamQuery
+     */
+    public function getReadSpamQuery(): ReadSpamQuery
+    {
+        return new ReadSpamQuery();
+    }
+
 }
