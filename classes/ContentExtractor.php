@@ -310,6 +310,24 @@ class ContentExtractor
     }
 
     /**
+     * @return bool
+     */
+    public function messageContainsForward(): bool
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return false;
+        }
+        if (isset($message["forward_from_chat"]) && is_array($message["forward_from_chat"])) {
+            return true;
+        }
+        if (isset($message["forward_from"]) && is_array($message["forward_from"])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return array | null
      */
     protected function getMessageSection()

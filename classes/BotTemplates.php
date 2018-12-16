@@ -104,5 +104,31 @@ class BotTemplates
         }
         return $message;
     }
+    
+         /**
+     * @param array $bannedUser
+     * @param ContentExtractor $extractor
+     * @return string
+     */
+    public function getForwardUserText($bannedUser, ContentExtractor $extractor): string
+    {
+        $name = $extractor->getNameFromUser($bannedUser);
+        $id = $extractor->getIdFromUser($bannedUser);
+        $rand = rand(1, 2);
+        switch ($rand) {
+            case 1:
+                $message = "
+     [" . $name . "](tg://user?id=" . $id . "), не кидай репосты из каналов, верблюд! Пенделя получишь!  😡
+            ";
+                break;
+            case 2:
+            default:
+                $message = "
+      [" . $name . "](tg://user?id=" . $id . "), не кидай рекламу чатов, чертила! Щас в бан улетишь! 😡
+            ";
+                break;
+        }
+        return $message;
+    }
 
 }

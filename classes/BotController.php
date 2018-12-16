@@ -141,6 +141,9 @@ class BotController
             if (!$banned) {
                 $banned = $this->checkSpamUsingSpamList($contentExtractor);
             }
+            if (!$banned) {
+                $banned = $this->checkNotAllowedForward($contentExtractor);
+            }
         }
         if (!$banned) {
             $this->checkWelcomeNewUser($message);
@@ -215,6 +218,20 @@ class BotController
     }
 
     /**
+     * @param ContentExtractor $contentExtractor 
+     * @return bool
+     */
+    protected function checkNotAllowedForward($contentExtractor): bool
+    {
+        $result = false;
+        if ($contentExtractor->messageContainsForward()) {
+            $this->banForwardUser($contentExtractor, $contentExtractor->getUser());
+            $result = true;
+        }
+        return $result;
+    }
+
+    /**
      * @param \TelegramBot\ContentExtractor $contentExtractor
      * @param array $bannedUser
      */
@@ -239,7 +256,21 @@ class BotController
         $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getSpamUserText($bannedUser, $contentExtractor));
         $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
         $banTime = $contentExtractor->getMessageDate() + (2 * 60);
-         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
+        $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
+    }
+
+    /**
+     * @param \TelegramBot\ContentExtractor $contentExtractor
+     * @param array $bannedUser
+     */
+    protected function banForwardUser(ContentExtractor $contentExtractor, $bannedUser)
+    {
+        $chatId = $contentExtractor->getGroupId();
+        $id = $contentExtractor->getIdFromUser($bannedUser);
+        $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getForwardUserText($bannedUser, $contentExtractor));
+        $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
+        $banTime = $contentExtractor->getMessageDate() + (1 * 60);
+        $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
     }
 
     /**
