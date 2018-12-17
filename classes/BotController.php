@@ -144,6 +144,10 @@ class BotController
             if (!$banned) {
                 $banned = $this->checkNotAllowedForward($contentExtractor);
             }
+//            $this->database->writeLoggedUser($contentExtractor->getUserId(), $contentExtractor->getGroupId(),
+//                    $contentExtractor->getUserFirstName(), $contentExtractor->getUserLastName(),
+//                    $contentExtractor->getUserFullName(), $contentExtractor->getUserName(),
+//                    $banned);
         }
         if (!$banned) {
             $this->checkWelcomeNewUser($message);

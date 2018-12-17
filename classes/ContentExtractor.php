@@ -64,6 +64,36 @@ class ContentExtractor
     }
 
     /**
+     * @return string 
+     */
+    public function getUserFirstName()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['from']) && isset($message['from']['first_name'])) {
+            return $message['from']['first_name'];
+        }
+        return '';
+    }
+    
+      /**
+     * @return string 
+     */
+    public function getUserLastName()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['from']) && isset($message['from']['last_name'])) {
+            return $message['from']['last_name'];
+        }
+        return '';
+    }
+
+    /**
      * @return int 
      */
     public function getUser()
