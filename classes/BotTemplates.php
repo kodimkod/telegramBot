@@ -20,15 +20,47 @@ class BotTemplates
     /**
      * @param array $newUser
      * @param ContentExtractor $extractor
+     * @param bool $isFriendGroup
      * @return string
      */
-    public function getWelcomeMessage(array $newUser, ContentExtractor $extractor): string
+    public function getWelcomeMessage(array $newUser, ContentExtractor $extractor, $isFriendGroup): string
+    {
+        if ($isFriendGroup == true) {
+            return $this->getWelcomeMessageForFriendGroup($newUser, $extractor);
+        }
+        return $this->getWelcomeMessageForOwnGroup($newUser, $extractor);
+    }
+    
+        /**
+     * @param array $newUser
+     * @param ContentExtractor $extractor
+     * @return string
+     */
+    public function getWelcomeMessageForOwnGroup(array $newUser, ContentExtractor $extractor): string
     {
         $name = $extractor->getNameFromUser($newUser);
         $id = $extractor->getIdFromUser($newUser);
         $message = "
       ❀͍͓※͍͓❀͍͓[" . $this->configuration->getWelcomeUserName() .
                 "](tg://user?id=" . $this->configuration->getWelcomeUserId() . ")❀͍͓※͍͓❀͍͓:
+ПРИВЕТИК [" . $name . "](tg://user?id=" . $id .
+                ") ☺️😘! ДОБРО ПОЖАЛОВАТЬ!!! 🤗РАДЫ ВАС ВИДЕТЬ, В НАШЕЙ [ГРУППЕ](tg://join?invite=" .
+                $this->configuration->getWelcomeUserGroupId() . ")!😘!ПРИЯТНОГО ВАМ ОБЩЕНИЯ! 💖💖💖💖
+            ";
+        return $message;
+    }
+    
+        /**
+     * @param array $newUser
+     * @param ContentExtractor $extractor
+     * @return string
+     */
+    public function getWelcomeMessageForFriendGroup(array $newUser, ContentExtractor $extractor): string
+    {
+        $name = $extractor->getNameFromUser($newUser);
+        $id = $extractor->getIdFromUser($newUser);
+        $message = "
+      ❀͍͓※͍͓❀͍͓❀͍͓※͍͓❀͍͓:
 ПРИВЕТИК [" . $name . "](tg://user?id=" . $id .
                 ") ☺️😘! ДОБРО ПОЖАЛОВАТЬ!!! 🤗РАДЫ ВАС ВИДЕТЬ, В НАШЕЙ [ГРУППЕ](tg://join?invite=" .
                 $this->configuration->getWelcomeUserGroupId() . ")!😘!ПРИЯТНОГО ВАМ ОБЩЕНИЯ! 💖💖💖💖

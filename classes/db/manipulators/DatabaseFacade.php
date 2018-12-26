@@ -75,4 +75,34 @@ class DatabaseFacade
         return $this->reader->getSpam();
     }
 
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $fullName
+     * @param string $userName
+     * @param bool $banned
+     */
+    public function writeLoggedUser($userId, $groupId,
+            $firstName, $lastName,
+            $fullName, $userName,
+            $banned)
+    {
+        return $this->writer->writeLoggedUser($userId, $groupId,
+                        $firstName, $lastName,
+                        $fullName, $userName,
+                        $banned);
+    }
+
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @return array
+     */
+    public function getSpamDataOnUser($userId, $groupId)
+    {
+        return $this->reader->getSpamDataOnUser($userId, $groupId);
+    }
+
 }

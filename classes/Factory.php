@@ -86,4 +86,35 @@ class Factory
         return new ReadSpamQuery();
     }
 
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $fullName
+     * @param string $userName
+     * @param bool $banned
+     * @return WriteLoggedUserCommand
+     */
+    public function getWriteLoggedUserCommand($userId, $groupId,
+            $firstName, $lastName,
+            $fullName, $userName,
+            $banned): WriteLoggedUserCommand
+    {
+        return WriteLoggedUserCommand::fromParameters($userId, $groupId,
+                        $firstName, $lastName,
+                        $fullName, $userName,
+                        $banned);
+    }
+
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @return ReadSpamQuery
+     */
+    public function getReadSpamDataOnUserQuery($userId, $groupId): ReadSpamDataOnUserQuery
+    {
+        return ReadSpamDataOnUserQuery::fromParameters($userId, $groupId);
+    }
+
 }

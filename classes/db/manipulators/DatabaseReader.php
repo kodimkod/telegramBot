@@ -25,7 +25,6 @@ class DatabaseReader extends DatabaseManipulator
         }
         return $result['offset'];
     }
-    
 
     /**
      * @return array
@@ -44,8 +43,8 @@ class DatabaseReader extends DatabaseManipulator
         }
         return iterator_to_array($results);
     }
-    
-        /**
+
+    /**
      * @return array
      * @throws \ErrorException
      */
@@ -62,9 +61,8 @@ class DatabaseReader extends DatabaseManipulator
         }
         return iterator_to_array($results);
     }
-    
-       
-        /**
+
+    /**
      * @return array
      * @throws \ErrorException
      */
@@ -80,6 +78,29 @@ class DatabaseReader extends DatabaseManipulator
             return [];
         }
         return iterator_to_array($results);
+    }
+
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getSpamDataOnUser($userId, $groupId): array
+    {
+        $query = $this->factory->getReadSpamDataOnUserQuery($userId, $groupId);
+        try {
+            $results = $query->fetch($this->connection)->getIterator();
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error reading spam data on user: ' . $exception->getMessage());
+        }
+        if (count($results) == 0) {
+            return [
+                'allowed_messages' => 0,
+                'spam_messages' => 0
+            ];
+        }
+        return reset($results);
     }
 
 }

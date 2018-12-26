@@ -62,6 +62,17 @@ class BotConfig
      */
     protected $ownGroupIds;
 
+    /**
+     * @var array
+     */
+    protected $friendGroupIds;
+    
+    
+    /**
+     * @var array
+     */
+    protected $friendWelcomeDiffersGroupIds;
+
     public function __construct($appRoot)
     {
         $this->appRoot = $appRoot;
@@ -77,6 +88,8 @@ class BotConfig
         $this->welcomeUserId = $ini_array['welcomeUserId'];
         $this->welcomeUserGroupId = $ini_array['welcomeUserGroupId'];
         $this->ownGroupIds = $ini_array['ownGroupIds'];
+        $this->friendGroupIds = $ini_array['friendGroupIds'];
+        $this->friendWelcomeDiffersGroupIds = $ini_array['friendWelcomeDiffersGroupIds'];
     }
 
     /**
@@ -180,8 +193,15 @@ class BotConfig
      */
     public function getFriendGroupsWhereBotWorks(): array
     {
-        return [
-        ];
+        return $this->friendGroupIds;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getFriendGroupsWhereWelcomeMessageDiffers(): array
+    {
+        return $this->friendWelcomeDiffersGroupIds;
     }
 
     /**

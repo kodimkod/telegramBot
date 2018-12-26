@@ -144,10 +144,10 @@ class BotController
             if (!$banned) {
                 $banned = $this->checkNotAllowedForward($contentExtractor);
             }
-//            $this->database->writeLoggedUser($contentExtractor->getUserId(), $contentExtractor->getGroupId(),
-//                    $contentExtractor->getUserFirstName(), $contentExtractor->getUserLastName(),
-//                    $contentExtractor->getUserFullName(), $contentExtractor->getUserName(),
-//                    $banned);
+            $this->database->writeLoggedUser($contentExtractor->getUserId(), $contentExtractor->getGroupId(),
+                    $contentExtractor->getUserFirstName(), $contentExtractor->getUserLastName(),
+                    $contentExtractor->getUserFullName(), $contentExtractor->getUserName(),
+                    $banned);
         }
         if (!$banned) {
             $this->checkWelcomeNewUser($message);
@@ -244,7 +244,7 @@ class BotController
         $chatId = $contentExtractor->getGroupId();
         $id = $contentExtractor->getIdFromUser($bannedUser);
         $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getBanArabUserText($bannedUser, $contentExtractor));
-        $banTime = $contentExtractor->getMessageDate() + (7 * 24 * 60 * 60);
+        $banTime = $contentExtractor->getMessageDate() + (17 * 24 * 60 * 60);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
         $this->messages->kickChatMember($this->config->getToken(), $chatId, $id, $banTime);
     }
@@ -257,10 +257,59 @@ class BotController
     {
         $chatId = $contentExtractor->getGroupId();
         $id = $contentExtractor->getIdFromUser($bannedUser);
+        $spamData = $this->database->getSpamDataOnUser($id, $chatId);
+        $spams = $contentExtractor->getPreviousSpamsFromSpamData($spamData);
+        $allowedMessages = $contentExtractor->getPreviousAllowedMessagesFromSpamData($spamData);
         $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getSpamUserText($bannedUser, $contentExtractor));
         $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
-        $banTime = $contentExtractor->getMessageDate() + (2 * 60);
+        $banTime = $contentExtractor->getMessageDate() + $this->getBanMinutes($spams, $allowedMessages);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
+    }
+
+    /**
+     * @param int $spams
+     * @param int $allowedMessages
+     * @return int
+     */
+    protected function getBanMinutes($spams, $allowedMessages): int
+    {
+        if ($spams == 0 && $allowedMessages < 2) {
+            return 2 * 60;
+        }
+        if ($spams == 1 && $allowedMessages < 2) {
+            return 20 * 60;
+        }
+        if ($spams == 2 && $allowedMessages < 2) {
+            return 120 * 60;
+        }
+        if ($spams == 3 && $allowedMessages < 2) {
+            return 4 * 60 * 60;
+        }
+        if ($spams > 3 && $allowedMessages < 2) {
+            return ($spams + 5) * 60 * 60;
+        }
+        if ($allowedMessages > 100 && $spams < 20) {
+            return 5;
+        }
+        if ($allowedMessages > 20 && $spams < 2) {
+            return 5;
+        }
+        if ($allowedMessages > 20 && $spams < 5) {
+            return 2 * 60;
+        }
+        // now cases allowed > 100 and spam > 20
+        // allowed < 100 and spam <> 20
+        if ($allowedMessages > 100 && $spams > 20) {
+            return 2 * 60;
+        }
+        if ($allowedMessages < 100 && $spams > 20) {
+            return ($spams + 5) * 2 * 60;
+        }
+        if ($allowedMessages < 100 && $spams < 20) {
+            return ($spams + 2) * 2 * 60;
+        }
+        // no idea what case, just ban
+        return ($spams + 4) * 2 * 60;
     }
 
     /**
@@ -271,9 +320,12 @@ class BotController
     {
         $chatId = $contentExtractor->getGroupId();
         $id = $contentExtractor->getIdFromUser($bannedUser);
+        $spamData = $this->database->getSpamDataOnUser($id, $chatId);
+        $spams = $contentExtractor->getPreviousSpamsFromSpamData($spamData);
+        $allowedMessages = $contentExtractor->getPreviousAllowedMessagesFromSpamData($spamData);
         $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getForwardUserText($bannedUser, $contentExtractor));
         $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
-        $banTime = $contentExtractor->getMessageDate() + (1 * 60);
+        $banTime = $contentExtractor->getMessageDate() + $this->getBanMinutes($spams, $allowedMessages);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
     }
 
@@ -288,11 +340,14 @@ class BotController
         if (!$this->rights->welcomeMessageIsAllowedForGroup($contentExtractor->getGroupId())) {
             return false;
         }
+        $isFriendGroupMessage = $this->rights->welcomeMessageIsDifferentForGroup($contentExtractor->getGroupId());
         if ($contentExtractor->newUserIsDetected()) {
             $newUsers = $contentExtractor->getNewJoinedUsers();
             foreach ($newUsers as $newUser) {
                 $currentResult = $this->messages->sendMessage($this->config->getToken(),
-                        $contentExtractor->getGroupId(), $this->templates->getWelcomeMessage($newUser, $contentExtractor));
+                        $contentExtractor->getGroupId(),
+                        $this->templates->getWelcomeMessage($newUser, $contentExtractor,
+                                $isFriendGroupMessage));
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
             }
         }

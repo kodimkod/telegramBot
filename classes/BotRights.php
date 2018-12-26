@@ -44,6 +44,27 @@ class BotRights
                 return true;
             }
         }
+        $groups = $this->configuration->getFriendGroupsWhereBotWorks();
+        foreach ($groups as $group) {
+            if ($group == $groupId) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+     /**
+     * @param string $groupId
+     * @return bool
+     */
+    public function welcomeMessageIsDifferentForGroup($groupId): bool
+    {
+        $groups = $this->configuration->getFriendGroupsWhereWelcomeMessageDiffers();
+        foreach ($groups as $group) {
+            if ($group == $groupId) {
+                return true;
+            }
+        }
         return false;
     }
 

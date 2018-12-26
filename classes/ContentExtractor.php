@@ -77,8 +77,8 @@ class ContentExtractor
         }
         return '';
     }
-    
-      /**
+
+    /**
      * @return string 
      */
     public function getUserLastName()
@@ -91,6 +91,37 @@ class ContentExtractor
             return $message['from']['last_name'];
         }
         return '';
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getUserName()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['from']) && isset($message['from']['username'])) {
+            return $message['from']['username'];
+        }
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserFullName()
+    {
+        $firstName = $this->getUserFirstName();
+        $lastName = $this->getUserLastName();
+        if (empty($firstName)) {
+            return $lastName;
+        }
+        if (empty($lastName)) {
+            return $firstName;
+        }
+        return $firstName . ' ' . $lastName;
     }
 
     /**
@@ -203,7 +234,7 @@ class ContentExtractor
     public function getUserNameFromUser($user): string
     {
         if (isset($user['username'])) {
-            return '@' . $user['username'];
+            return $user['username'];
         }
         return '';
     }
@@ -355,6 +386,30 @@ class ContentExtractor
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param array $spamData
+     * @return int
+     */
+    public function getPreviousSpamsFromSpamData($spamData): int
+    {
+        if (isset($spamData['spam_messages'])) {
+            return $spamData['spam_messages'];
+        }
+        return 0;
+    }
+
+    /**
+     * @param array $spamData
+     * @return int
+     */
+    public function getPreviousAllowedMessagesFromSpamData($spamData): int
+    {
+        if (isset($spamData['allowed_messages'])) {
+            return $spamData['allowed_messages'];
+        }
+        return 0;
     }
 
     /**

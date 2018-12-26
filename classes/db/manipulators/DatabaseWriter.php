@@ -41,4 +41,30 @@ class DatabaseWriter extends DatabaseManipulator
         return $status;
     }
 
+    /**
+     * @param string $userId
+     * @param string $groupId
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $fullName
+     * @param string $userName
+     * @param bool $banned
+     */
+    public function writeLoggedUser($userId, $groupId,
+            $firstName, $lastName,
+            $fullName, $userName,
+            $banned)
+    {
+        $command = $this->factory->getWriteLoggedUserCommand($userId, $groupId,
+                $firstName, $lastName,
+                $fullName, $userName,
+                $banned);
+        try {
+            $status = $command->execute($this->connection);
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error writing logged user: ' . $exception->getMessage());
+        }
+        return $status;
+    }
+
 }
