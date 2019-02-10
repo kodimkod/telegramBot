@@ -134,6 +134,14 @@ class BotController
     {
         $contentExtractor = $this->factory->getContentExtractor($message);
         $banned = false;
+        if ($contentExtractor->isCallBack()) {
+            $result = $this->processCallbackQuery($contentExtractor);
+            return $result;
+        }
+        if ($contentExtractor->isChannelPost()) {
+            $result = $this->processChannelPost($contentExtractor);
+            return $result;
+        }
         if (!$this->rights->userIsExcludedFromBans($contentExtractor->getUserId()) &&
                 !$this->rights->contentIsExcludedFromBans($contentExtractor->getMessageContent()) &&
                 $this->rights->botWorksInThisGroup($contentExtractor->getGroupId())) {
@@ -152,6 +160,9 @@ class BotController
         if (!$banned) {
             $this->checkWelcomeNewUser($message);
             $this->checkGoodbyeLeftUser($message);
+        }
+        if ($this->rights->botWorksInThisGroup($contentExtractor->getGroupId())) {
+            $this->deleteNewUserJoinedMessage($contentExtractor);
         }
     }
 
@@ -197,6 +208,87 @@ class BotController
 
         if ($contentExtractor->isArabicString($contentExtractor->getMessageContent()) || $banInviter == 1) {
             $this->banArabUser($contentExtractor, $contentExtractor->getUser());
+            $result = true;
+        }
+        return $result;
+    }
+
+    /**
+     * @param ContentExtractor $contentExtractor 
+     * @return bool
+     */
+    protected function deleteNewUserJoinedMessage($contentExtractor): bool
+    {
+        $result = false;
+        if ($contentExtractor->newUserIsDetected()) {
+            $chatId = $contentExtractor->getGroupId();
+            $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
+            $result = true;
+        }
+        return $result;
+    }
+
+    /**
+     * @param ContentExtractor $contentExtractor 
+     * @return bool
+     */
+    protected function processChannelPost($contentExtractor): bool
+    {
+        $result = false;
+        if ($contentExtractor->postContainsText()) {
+        $mode = 'text'; 
+        $text = $contentExtractor->getChannelPostText() . $this->templates->getChannelPostFooter();
+        } else {
+            $mode = 'caption';
+            $text = $contentExtractor->getChannelPostCaption() . $this->templates->getChannelPostFooter();
+        }
+        $keyboard = $this->templates->getChannelFooterKeyboard();
+        if ($mode == 'text') {
+        $resultText = $this->messages->editMessageText($this->config->getToken(),
+                $contentExtractor->getChannelPostChannelId(),
+                $contentExtractor->getChannelPostId(), $text, $keyboard);
+        } else {
+            $resultText = $this->messages->editMessageCaption($this->config->getToken(),
+                $contentExtractor->getChannelPostChannelId(),
+                $contentExtractor->getChannelPostId(), $text, $keyboard);
+        }
+        if (isset($resultText['ok']) && $resultText['ok'] == true) {
+            $result = true;
+        }
+        return $result;
+    }
+
+    /**
+     * @param ContentExtractor $contentExtractor 
+     * @return bool
+     */
+    protected function processCallbackQuery($contentExtractor): bool
+    {
+        $result = false;
+        $data = $contentExtractor->getCallbackData();
+        if (preg_match('/^channel_like|channel_dislike$/', $data) != 1) {
+            return $result;
+        }
+        if ($data == 'channel_like') {
+            $this->database->writeNewCallbackLike($contentExtractor->getCallbackPostId(), $contentExtractor->getCallbackChannelId(),
+                    $contentExtractor->getCallbackUserId());
+        }
+        $likeData = [
+            'likes' => null,
+            'dislikes' => null
+        ];
+        if ($data == 'channel_dislike') {
+            $this->database->writeNewCallbackDislike($contentExtractor->getCallbackPostId(), $contentExtractor->getCallbackChannelId(),
+                    $contentExtractor->getCallbackUserId());
+        }
+        if ($data == 'channel_like' || $data == 'channel_dislike') {
+            $likeData = $this->database->getCallbackLikes($contentExtractor->getCallbackPostId(), $contentExtractor->getCallbackChannelId());
+        }
+        $keyboard = $this->templates->getChannelFooterKeyboard($likeData['likes'], $likeData['dislikes']);
+        $resultText = $this->messages->editMessageReplyMarkup($this->config->getToken(),
+                $contentExtractor->getCallbackChannelId(),
+                $contentExtractor->getCallbackPostId(), $keyboard);
+        if (isset($resultText['ok']) && $resultText['ok'] == true) {
             $result = true;
         }
         return $result;
@@ -289,10 +381,10 @@ class BotController
             return ($spams + 5) * 60 * 60;
         }
         if ($allowedMessages > 100 && $spams < 20) {
-            return 5;
+            return 60;
         }
         if ($allowedMessages > 20 && $spams < 2) {
-            return 5;
+            return 60;
         }
         if ($allowedMessages > 20 && $spams < 5) {
             return 2 * 60;
@@ -371,6 +463,32 @@ class BotController
                 $currentResult = $this->messages->sendMessage($this->config->getToken(),
                         $contentExtractor->getGroupId(), $this->templates->getLeaveMessage($leftUser, $contentExtractor));
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @param type $chatId
+     * @param string $text
+     * @param ContentExtractor $contentExtractor
+     * @param bool $logMessage
+     * @param string $deleteTime
+     */
+    protected function sendChatMessage($chatId, string $text, ContentExtractor $contentExtractor, bool $logMessage = true, string $deleteTime = 'standard')
+    {
+        $result = $this->messages->sendMessage($this->config->getToken(),
+                $chatId, $text);
+        if ($contentExtractor->sendMessageResultIsSuccess($result) == true && $logMessage == true) {
+            $deletionTime = time();
+            if ($deleteTime == 'standard') {
+                $deletionTime = $deletionTime + 30;
+            } else {
+                $deletionTime = $deletionTime + $deleteTime;
+            }
+            $id = $contentExtractor->getIdOfSentMessage($result);
+            if ($id !== null) {
+                $this->database->writeOwnMessageLog($id, $chatId, $deletionTime);
             }
         }
         return $result;

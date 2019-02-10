@@ -277,6 +277,18 @@ class ContentExtractor
     }
 
     /**
+     * @param array $result
+     * @return string | null
+     */
+    public function getIdOfSentMessage($result)
+    {
+        if (isset($result['result']) && isset($result['result']["message_id"])) {
+            return $result['result']["message_id"];
+        }
+        return null;
+    }
+
+    /**
      * @return bool
      */
     public function newUserIsDetected(): bool
@@ -413,6 +425,159 @@ class ContentExtractor
     }
 
     /**
+     * @return bool
+     */
+    public function isChannelPost(): bool
+    {
+        if (!isset($this->content['message']) && isset($this->content['channel_post'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCallBack(): bool
+    {
+        if (!isset($this->content['message']) && isset($this->content['callback_query'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return int | null
+     */
+    public function getChannelPostId()
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['message_id'])) {
+            return $message['message_id'];
+        }
+    }
+
+    /**
+     * @return int | null
+     */
+    public function getChannelPostChannelId()
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['chat']) && isset($message['chat']['id'])) {
+            return $message['chat']['id'];
+        }
+    }
+
+    /**
+     * @return string 
+     */
+    public function getChannelPostText()
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['text'])) {
+            return $message['text'];
+        }
+        if (isset($message['caption'])) {
+            return $message['caption'];
+        }
+        return null;
+    }
+
+    /**
+     * @return string 
+     */
+    public function getChannelPostCaption()
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['caption'])) {
+            return $message['caption'];
+        }
+        return null;
+    }
+
+    /**
+     * @return bool 
+     */
+    public function postContainsText(): bool
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return false;
+        }
+        if (isset($message['text'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return int | null
+     */
+    public function getCallbackPostId()
+    {
+        $message = $this->getCallbackMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['message_id'])) {
+            return $message['message_id'];
+        }
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getCallbackData()
+    {
+        if (isset($this->content['callback_query']) && isset($this->content['callback_query']['data'])) {
+            return $this->content['callback_query']['data'];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return int | null
+     */
+    public function getCallbackUserId()
+    {
+        if (isset($this->content['callback_query']) &&
+                isset($this->content['callback_query']['from']) &&
+                isset($this->content['callback_query']['from']['id'])
+        ) {
+            return $this->content['callback_query']['from']['id'];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return int | null
+     */
+    public function getCallbackChannelId()
+    {
+        $message = $this->getCallbackMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['chat']) && isset($message['chat']['id'])) {
+            return $message['chat']['id'];
+        }
+    }
+
+    /**
      * @return array | null
      */
     protected function getMessageSection()
@@ -421,6 +586,32 @@ class ContentExtractor
             return $this->content['message'];
         } else if (isset($this->content['edited_message'])) {
             return $this->content['edited_message'];
+        } else {
+            return;
+        }
+    }
+
+    /**
+     * @return array | null
+     */
+    protected function getChannelPostSection()
+    {
+        if (isset($this->content['channel_post'])) {
+            return $this->content['channel_post'];
+        } else if (isset($this->content['edited_channel_post'])) {
+            return $this->content['edited_channel_post'];
+        } else {
+            return;
+        }
+    }
+
+    /**
+     * @return array | null
+     */
+    protected function getCallbackMessageSection()
+    {
+        if (isset($this->content['callback_query']) && isset($this->content['callback_query']['message'])) {
+            return $this->content['callback_query']['message'];
         } else {
             return;
         }

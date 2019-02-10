@@ -117,4 +117,37 @@ class Factory
         return ReadSpamDataOnUserQuery::fromParameters($userId, $groupId);
     }
 
+    /**
+     * @param string $messageId
+     * @param string $chatId
+     * @param string $deletionTime
+     * @return WriteOwnMessageLogCommand
+     */
+    public function getWriteOwnMessageLogCommand($messageId, $chatId, $deletionTime): WriteOwnMessageLogCommand
+    {
+        return WriteOwnMessageLogCommand::fromParameters($messageId, $chatId, $deletionTime);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @param int | null $userId
+     * @param string $mode
+     * @return WriteCallbackLikeCommand
+     */
+    public function getWriteCallbackLikeCommand($messageId, $channelId, $userId, $mode = 'like'): WriteCallbackLikeCommand
+    {
+        return WriteCallbackLikeCommand::fromParameters($messageId, $channelId, $userId, $mode);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @return ReadCallbackLikesQuery
+     */
+    public function getCallbackLikesQuery($messageId, $channelId): ReadCallbackLikesQuery
+    {
+        return ReadCallbackLikesQuery::fromParameters($messageId, $channelId);
+    }
+
 }

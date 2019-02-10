@@ -46,8 +46,8 @@ class TelegramMessages
         curl_close($ch);
         return $this->decodeResult($result);
     }
-    
-       /**
+
+    /**
      * @param string $token
      * @param int $chatId
      * @param int $messageId
@@ -105,6 +105,84 @@ class TelegramMessages
             'chat_id' => $chatId,
             'user_id' => $userId,
             'until_date' => $untilDate
+        ];
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
+
+    /**
+     * @param string $token
+     * @param int $chatId
+     * @param int $messageId
+     * @param string text
+      @param string $inlineKeyboard
+     * @return type
+     */
+    public function editMessageText(string $token, $chatId, $messageId, $text, $inlineKeyboard = null)
+    {
+        $requestUrl = self::ApiUrl . $token . '/editMessageText';
+        $params = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'HTML',
+            'disable_web_page_preview' => true
+        ];
+        if (!empty($inlineKeyboard)) {
+            $params['reply_markup'] = $inlineKeyboard;
+        }
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
+    
+        /**
+     * @param string $token
+     * @param int $chatId
+     * @param int $messageId
+     * @param string text
+      @param string $inlineKeyboard
+     * @return type
+     */
+    public function editMessageCaption(string $token, $chatId, $messageId, $text, $inlineKeyboard = null)
+    {
+        $requestUrl = self::ApiUrl . $token . '/editMessageCaption';
+        $params = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'caption' => $text,
+            'parse_mode' => 'HTML',
+            'disable_web_page_preview' => true
+        ];
+        if (!empty($inlineKeyboard)) {
+            $params['reply_markup'] = $inlineKeyboard;
+        }
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
+
+    /**
+     * @param string $token
+     * @param int $chatId
+     * @param int $messageId
+      @param string $inlineKeyboard
+     * @return type
+     */
+    public function editMessageReplyMarkup(string $token, $chatId, $messageId, $inlineKeyboard = null)
+    {
+        $requestUrl = self::ApiUrl . $token . '/editMessageReplyMarkup';
+        $params = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'reply_markup' => $inlineKeyboard
         ];
         $ch = curl_init($requestUrl);
         $this->setCurlOpts($ch, $requestUrl, $params);

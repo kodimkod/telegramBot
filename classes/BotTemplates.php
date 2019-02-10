@@ -30,8 +30,8 @@ class BotTemplates
         }
         return $this->getWelcomeMessageForOwnGroup($newUser, $extractor);
     }
-    
-        /**
+
+    /**
      * @param array $newUser
      * @param ContentExtractor $extractor
      * @return string
@@ -44,13 +44,18 @@ class BotTemplates
       ❀͍͓※͍͓❀͍͓[" . $this->configuration->getWelcomeUserName() .
                 "](tg://user?id=" . $this->configuration->getWelcomeUserId() . ")❀͍͓※͍͓❀͍͓:
 ПРИВЕТИК [" . $name . "](tg://user?id=" . $id .
-                ") ☺️😘! ДОБРО ПОЖАЛОВАТЬ!!! 🤗РАДЫ ВАС ВИДЕТЬ, В НАШЕЙ [ГРУППЕ](tg://join?invite=" .
-                $this->configuration->getWelcomeUserGroupId() . ")!😘!ПРИЯТНОГО ВАМ ОБЩЕНИЯ! 💖💖💖💖
+                ") ☺️😘!   Пусть счастье ❤️будет без всяких условий: без скобок,😊 кавычек,😊 пробелов 😊и точек. Цените тех, с кем можно быть собой.🤗 Без масок,😉 недомолвок😉 и амбиций…😊
+▁▂▃▅▆█ДОБРО ПОЖАЛОВАТЬ✌️ МЫ РАДЫ 😁
+                            КАЖДОМУ ИЗ ВАС!😁█▆▅▃▂▁
+╔══╗ 
+╚╗╔╝ 
+╔╝(¯v´¯) 
+╚══.¸.´you❤️❤️😊😘
             ";
         return $message;
     }
-    
-        /**
+
+    /**
      * @param array $newUser
      * @param ContentExtractor $extractor
      * @return string
@@ -110,8 +115,8 @@ class BotTemplates
         }
         return $message;
     }
-    
-      /**
+
+    /**
      * @param array $bannedUser
      * @param ContentExtractor $extractor
      * @return string
@@ -136,8 +141,8 @@ class BotTemplates
         }
         return $message;
     }
-    
-         /**
+
+    /**
      * @param array $bannedUser
      * @param ContentExtractor $extractor
      * @return string
@@ -161,6 +166,52 @@ class BotTemplates
                 break;
         }
         return $message;
+    }
+
+    /**
+     * @return string
+     */
+    public function getChannelPostFooter(): string
+    {
+        $footer = '
+<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>
+    <a href="' . $this->configuration->getFooterLink2() . '">' . $this->configuration->getFooterText2() . '</a>';
+        return $footer;
+    }
+
+    /**
+     * @param int | null $likes
+     * @param int | null $dislikes
+     * @return string
+     */
+    public function getChannelFooterKeyboard($likes = null, $dislikes = null): string
+    {
+        if ($likes !== null) {
+            $likes = ' ' . $likes;
+        }
+        if ($dislikes !== null) {
+            $dislikes = ' ' . $dislikes;
+        }
+        $keyboard = ["inline_keyboard" => [[
+            [
+                "text" => "👍" . $likes,
+                'callback_data' => 'channel_like'
+            ],
+            [
+                "text" => "👎" . $dislikes,
+                'callback_data' => 'channel_dislike'
+            ],
+                ],
+                [
+                    [
+                        "text" => $this->configuration->getFooterText2(),
+                        "url" => $this->configuration->getFooterLink2()
+                    ]
+                ]
+            ]
+        ];
+        $keyboard = json_encode($keyboard);
+        return $keyboard;
     }
 
 }

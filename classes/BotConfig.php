@@ -66,12 +66,41 @@ class BotConfig
      * @var array
      */
     protected $friendGroupIds;
-    
-    
+
     /**
      * @var array
      */
     protected $friendWelcomeDiffersGroupIds;
+
+    /**
+     * @var string
+     */
+    protected $footerLink1;
+
+    /**
+     * @var string
+     */
+    protected $footerLink2;
+
+    /**
+     * @var string
+     */
+    protected $footerText1;
+
+    /**
+     * @var string
+     */
+    protected $footerText2;
+
+    /**
+     * @var string
+     */
+    protected $callbackButton1;
+
+    /**
+     * @var string
+     */
+    protected $callbackButton2;
 
     public function __construct($appRoot)
     {
@@ -90,6 +119,12 @@ class BotConfig
         $this->ownGroupIds = $ini_array['ownGroupIds'];
         $this->friendGroupIds = $ini_array['friendGroupIds'];
         $this->friendWelcomeDiffersGroupIds = $ini_array['friendWelcomeDiffersGroupIds'];
+        $this->footerLink1 = $ini_array['footerLink1'];
+        $this->footerLink2 = $ini_array['footerLink2'];
+        $this->footerText1 = $ini_array['footerText1'];
+        $this->footerText2 = $ini_array['footerText2'];
+        $this->callbackButton1 = $ini_array['callbackButton1'];
+        $this->callbackButton2 = $ini_array['callbackButton2'];
     }
 
     /**
@@ -195,13 +230,61 @@ class BotConfig
     {
         return $this->friendGroupIds;
     }
-    
+
     /**
      * @return array
      */
     public function getFriendGroupsWhereWelcomeMessageDiffers(): array
     {
         return $this->friendWelcomeDiffersGroupIds;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooterLink1(): string
+    {
+        return $this->footerLink1;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooterLink2(): string
+    {
+        return $this->footerLink2;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooterText1(): string
+    {
+        return $this->footerText1;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooterText2(): string
+    {
+        return $this->footerText2;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCallbackButton1Text(): string
+    {
+        return $this->callbackButton1;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCallbackButton2Text(): string
+    {
+        return $this->callbackButton2;
     }
 
     /**
@@ -239,6 +322,24 @@ class BotConfig
         }
         if (!isset($settings['ownGroupIds']) || !is_array($settings['ownGroupIds'])) {
             throw new UnexpectedValueException('Wrong own groups, not array?');
+        }
+        if (!isset($settings['footerLink1'])) {
+            throw new UnexpectedValueException('No link for footer link 1.');
+        }
+        if (!isset($settings['footerText1'])) {
+            throw new UnexpectedValueException('No text for footer link 1.');
+        }
+        if (!isset($settings['footerLink2'])) {
+            throw new UnexpectedValueException('No link for footer link 2.');
+        }
+        if (!isset($settings['footerText2'])) {
+            throw new UnexpectedValueException('No text for footer link 2.');
+        }
+        if (!isset($settings['callbackButton1'])) {
+            throw new UnexpectedValueException('No text for callback button 1');
+        }
+        if (!isset($settings['callbackButton2'])) {
+            throw new UnexpectedValueException('No text for callback button 2');
         }
     }
 

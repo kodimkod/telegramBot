@@ -103,4 +103,27 @@ class DatabaseReader extends DatabaseManipulator
         return reset($results);
     }
 
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getCallbackLikes($messageId, $channelId): array
+    {
+        $query = $this->factory->getCallbackLikesQuery($messageId, $channelId);
+        try {
+            $results = $query->fetch($this->connection)->getIterator();
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error reading like data on callback: ' . $exception->getMessage());
+        }
+        if (count($results) == 0) {
+            return [
+                'likes' => 0,
+                'dislikes' => 0
+            ];
+        }
+        return reset($results);
+    }
+
 }

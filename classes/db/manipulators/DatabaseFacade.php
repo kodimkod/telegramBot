@@ -11,7 +11,7 @@ class DatabaseFacade
     protected $reader;
 
     /**
-     * @var DatabaseReader 
+     * @var DatabaseWriter 
      */
     protected $writer;
 
@@ -103,6 +103,46 @@ class DatabaseFacade
     public function getSpamDataOnUser($userId, $groupId)
     {
         return $this->reader->getSpamDataOnUser($userId, $groupId);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $chatId
+     * @param string $deletionTime
+     */
+    public function writeOwnMessageLog($messageId, $chatId, $deletionTime)
+    {
+        return $this->writer->writeOwnMessageLog($messageId, $chatId, $deletionTime);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @param int | null $userId
+     */
+    public function writeNewCallbackLike($messageId, $channelId, $userId)
+    {
+        return $this->writer->writeNewCallbackLike($messageId, $channelId, $userId, 'like');
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @param int | null $userId
+     */
+    public function writeNewCallbackDislike($messageId, $channelId, $userId)
+    {
+        return $this->writer->writeNewCallbackLike($messageId, $channelId, $userId, 'dislike');
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $channelId
+     * @return array
+     */
+    public function getCallbackLikes($messageId, $channelId)
+    {
+        return $this->reader->getCallbackLikes($messageId, $channelId);
     }
 
 }
