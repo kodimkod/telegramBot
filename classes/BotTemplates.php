@@ -212,7 +212,7 @@ class BotTemplates
                 ],
                 [
                     [
-                        "text" => '🔸🔘🔶°Ч🔺°А🔺°Т°🔶🔘🔸',
+                           "text" => $this->configuration->getFooterText2(),
                         "url" => $this->configuration->getFooterLink2()
                     ]
                 ]
