@@ -171,11 +171,18 @@ class BotTemplates
     /**
      * @return string
      */
-    public function getChannelPostFooter(): string
+    public function getChannelPostFooter($channelId): string
     {
-        $footer = '
-<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>
-    <a href="' . $this->configuration->getFooterLink2() . '">' . $this->configuration->getFooterText2() . '</a>';
+        if ($channelId == $this->configuration->getFooter3ChannelId()) {
+            $footer = ' 
+️<a href="' . $this->configuration->getFooterLink3() . '">' . $this->configuration->getFooterText3() . '</a>';
+            return $footer;
+        }
+        $footer = ' 
+️<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>
+<a href="' . $this->configuration->getFooterLink2() . '">' . $this->configuration->getFooterText2() . '</a>';
+        $footer = ' 
+️<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>';
         return $footer;
     }
 
@@ -186,6 +193,7 @@ class BotTemplates
      */
     public function getChannelFooterKeyboard($likes = null, $dislikes = null): string
     {
+        return '';
         if ($likes !== null) {
             $likes = ' ' . $likes;
         }
@@ -198,13 +206,13 @@ class BotTemplates
                 'callback_data' => 'channel_like'
             ],
             [
-                "text" => "👎" . $dislikes,
+                "text" => "💔" . $dislikes,
                 'callback_data' => 'channel_dislike'
-            ],
+            ]
                 ],
                 [
                     [
-                        "text" => $this->configuration->getFooterText2(),
+                        "text" => '🔸🔘🔶°Ч🔺°А🔺°Т°🔶🔘🔸',
                         "url" => $this->configuration->getFooterLink2()
                     ]
                 ]

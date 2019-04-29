@@ -150,4 +150,23 @@ class Factory
         return ReadCallbackLikesQuery::fromParameters($messageId, $channelId);
     }
 
+    /**
+     * @param  int $time
+     * @return ReadOwnMessagesToDeleteAfterTimeQuery
+     */
+    public function getOwnMessagesToDeleteAfterTimeQuery(int $time): ReadOwnMessagesToDeleteAfterTimeQuery
+    {
+        return ReadOwnMessagesToDeleteAfterTimeQuery::fromParameters($time);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $chatId
+     * @return DeleteOwnMessageCommand
+     */
+    public function getDeleteOwnMessageCommand($messageId, $chatId): DeleteOwnMessageCommand
+    {
+        return DeleteOwnMessageCommand::fromParameters($messageId, $chatId);
+    }
+
 }

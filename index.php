@@ -15,6 +15,12 @@ define('APP_ROOT', __DIR__);
 
 require APP_ROOT . '/vendor/autoload.php';
 
+if (isset($argv[1])) {
+    $mode = $argv[1];
+} else {
+    $mode = 'normal';
+}
+
 ini_set('max_execution_time', 600);
 ini_set('memory_limit', -1);
 set_time_limit(600);
@@ -40,7 +46,7 @@ $excludedUsers = $facade->getUsersExcludedFromBans();
 $excludedContent = $facade->getContentExcludedFromBans();
 $rights = new BotRights($config, $excludedUsers, $excludedContent);
 $templates = new BotTemplates($config);
-$controller = new BotController($config, $messages, $facade, $factory, $rights, $templates);
+$controller = new BotController($config, $messages, $facade, $factory, $rights, $templates, $mode);
 try {
     $controller->run();
 } catch (\Throwable $exception) {

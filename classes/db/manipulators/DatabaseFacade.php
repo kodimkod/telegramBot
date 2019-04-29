@@ -145,4 +145,22 @@ class DatabaseFacade
         return $this->reader->getCallbackLikes($messageId, $channelId);
     }
 
+    /**
+     * @param int $time
+     * @return array
+     */
+    public function getOwnMessagesToDeleteAfterTime(int $time)
+    {
+        return $this->reader->getOwnMessagesToDeleteAfterTime($time);
+    }
+
+    /**
+     * @param string $messageId
+     * @param string $chatId
+     */
+    public function deleteOwnMessage($messageId, $chatId)
+    {
+        return $this->writer->deleteOwnMessage($messageId, $chatId);
+    }
+
 }

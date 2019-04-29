@@ -2,7 +2,7 @@
 
 namespace TelegramBot;
 
-class WriteOwnMessageLogCommand extends SqlCommand
+class DeleteOwnMessageCommand extends SqlCommand
 {
 
     /**
@@ -15,21 +15,16 @@ class WriteOwnMessageLogCommand extends SqlCommand
      */
     private $chatId;
 
-    /**
-     * @var string
-     */
-    private $deletionTime;
-
+ 
     /**
      * @param string $messageId
      * @param string $chatId
-     * @param string $deletionTime
-     * @return WriteOwnMessageLogCommand
+     * @return DeleteOwnMessageCommand
      */
-    public static function fromParameters($messageId, $chatId, $deletionTime)
+    public static function fromParameters($messageId, $chatId)
     {
-        if (self::parametersAreValid($messageId, $chatId, $deletionTime)) {
-            return new self($messageId, $chatId, $deletionTime);
+        if (self::parametersAreValid($messageId, $chatId)) {
+            return new self($messageId, $chatId);
         }
         throw new \UnexpectedValueException('Bad parameters supplied to ' . __CLASS__);
     }
@@ -44,21 +39,17 @@ class WriteOwnMessageLogCommand extends SqlCommand
                 $this->messageId, \PDO::PARAM_STR);
         $statement->bindValue(':chat_id',
                 $this->chatId, \PDO::PARAM_STR);
-        $statement->bindValue(':deletion_time',
-                $this->deletionTime, \PDO::PARAM_STR);
         return $statement;
     }
 
     /**
      * @param string $messageId
      * @param string $chatId
-     * @param string $deletionTime
      */
-    private function __construct($messageId, $chatId, $deletionTime)
+    private function __construct($messageId, $chatId)
     {
         $this->messageId = $messageId;
         $this->chatId = $chatId;
-        $this->deletionTime = $deletionTime;
     }
 
     /**
@@ -67,8 +58,9 @@ class WriteOwnMessageLogCommand extends SqlCommand
     protected function getQuery()
     {
         $query = "
-            INSERT IGNORE INTO own_messages (message_id, chat_id, deletion_time) 
-            VALUES (:message_id, :chat_id, FROM_UNIXTIME(:deletion_time));
+            DELETE FROM  own_messages 
+            WHERE message_id = :message_id AND chat_id = :chat_id
+            ;
             ";
         return $query;
     }
@@ -76,18 +68,14 @@ class WriteOwnMessageLogCommand extends SqlCommand
     /**
      * @param string $messageId
      * @param string $chatId
-     * @param string $deletionTime
      * @return boolean
      */
-    private static function parametersAreValid($messageId, $chatId, $deletionTime)
+    private static function parametersAreValid($messageId, $chatId)
     {
         if (!isset($messageId) || empty($messageId)) {
             return false;
         }
         if (!isset($chatId) || empty($chatId)) {
-            return false;
-        }
-        if (!isset($deletionTime) || empty($deletionTime)) {
             return false;
         }
         return true;

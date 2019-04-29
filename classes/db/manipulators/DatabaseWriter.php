@@ -105,5 +105,22 @@ class DatabaseWriter extends DatabaseManipulator
         }
         return $status;
     }
+    
+        /**
+     * @param string $messageId
+     * @param string $chatId
+     * @return bool
+     * @throws \ErrorException
+     */
+    public function deleteOwnMessage($messageId, $chatId)
+    {
+        $command = $this->factory->getDeleteOwnMessageCommand($messageId, $chatId);
+        try {
+            $status = $command->execute($this->connection);
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error deleting own message: ' . $exception->getMessage());
+        }
+        return $status;
+    }
 
 }

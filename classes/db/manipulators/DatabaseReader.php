@@ -126,4 +126,23 @@ class DatabaseReader extends DatabaseManipulator
         return reset($results);
     }
 
+    /**
+     * @param int $time
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getOwnMessagesToDeleteAfterTime(int $time): array
+    {
+        $query = $this->factory->getOwnMessagesToDeleteAfterTimeQuery($time);
+        try {
+            $results = $query->fetch($this->connection)->getIterator();
+        } catch (\Exception $exception) {
+            throw new \ErrorException('Error reading list of own messages to delete: ' . $exception->getMessage());
+        }
+        if (count($results) == 0) {
+            return [];
+        }
+        return iterator_to_array($results);
+    }
+
 }

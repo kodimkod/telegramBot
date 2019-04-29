@@ -85,6 +85,11 @@ class BotConfig
     /**
      * @var string
      */
+    protected $footerLink3;
+
+    /**
+     * @var string
+     */
     protected $footerText1;
 
     /**
@@ -95,12 +100,27 @@ class BotConfig
     /**
      * @var string
      */
+    protected $footerText3;
+
+    /**
+     * @var string
+     */
+    protected $footer3ChannelId;
+
+    /**
+     * @var string
+     */
     protected $callbackButton1;
 
     /**
      * @var string
      */
     protected $callbackButton2;
+
+    /**
+     * @var array
+     */
+    protected $channelNotEditableAuthors;
 
     public function __construct($appRoot)
     {
@@ -121,10 +141,14 @@ class BotConfig
         $this->friendWelcomeDiffersGroupIds = $ini_array['friendWelcomeDiffersGroupIds'];
         $this->footerLink1 = $ini_array['footerLink1'];
         $this->footerLink2 = $ini_array['footerLink2'];
+        $this->footerLink3 = $ini_array['footerLink3'];
         $this->footerText1 = $ini_array['footerText1'];
         $this->footerText2 = $ini_array['footerText2'];
+        $this->footerText3 = $ini_array['footerText3'];
+        $this->footer3ChannelId = $ini_array['footer3ChannelId'];
         $this->callbackButton1 = $ini_array['callbackButton1'];
         $this->callbackButton2 = $ini_array['callbackButton2'];
+        $this->channelNotEditableAuthors = $ini_array['doNotProcessPostsFrom'];
     }
 
     /**
@@ -258,6 +282,14 @@ class BotConfig
     /**
      * @return string
      */
+    public function getFooterLink3(): string
+    {
+        return $this->footerLink3;
+    }
+
+    /**
+     * @return string
+     */
     public function getFooterText1(): string
     {
         return $this->footerText1;
@@ -274,6 +306,22 @@ class BotConfig
     /**
      * @return string
      */
+    public function getFooterText3(): string
+    {
+        return $this->footerText3;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooter3ChannelId(): string
+    {
+        return $this->footer3ChannelId;
+    }
+
+    /**
+     * @return string
+     */
     public function getCallbackButton1Text(): string
     {
         return $this->callbackButton1;
@@ -285,6 +333,14 @@ class BotConfig
     public function getCallbackButton2Text(): string
     {
         return $this->callbackButton2;
+    }
+
+    /**
+     * @return array
+     */
+    public function getChannelNotEditableAuthors()
+    {
+        return $this->channelNotEditableAuthors;
     }
 
     /**

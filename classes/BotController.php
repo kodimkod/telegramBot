@@ -16,6 +16,9 @@ class BotController
     const LOG_TYPE_UNRECOGNIZED = 0;
     const LOG_TYPE_NORMAL_MESSAGE = 1;
 
+    const MODE_NORMAL = 0;
+    const MODE_DELETE_OWN  = 1;
+    
     /**
      * @var TelegramMessages
      */
@@ -51,9 +54,12 @@ class BotController
      * @param TelegramMessages $messages
      * @param DatabaseFacade $facade
      * @param Factory $factory
+     * @param BotRights $rights
+     * @param  BotTemplates $templates
+     * @param string $mode
      */
     public function __construct(BotConfig $config, TelegramMessages $messages, DatabaseFacade $facade,
-            Factory $factory, BotRights $rights, BotTemplates $templates)
+            Factory $factory, BotRights $rights, BotTemplates $templates, $mode = 'normal')
     {
         $this->config = $config;
         $this->messages = $messages;
@@ -61,10 +67,22 @@ class BotController
         $this->factory = $factory;
         $this->rights = $rights;
         $this->templates = $templates;
+        $this->mode = $mode == 'normal' ? self::MODE_NORMAL : self::MODE_DELETE_OWN;
     }
 
     public function run()
     {
+        if ($this->mode == self::MODE_DELETE_OWN) {
+            $messagesToDelete = $this->database->getOwnMessagesToDeleteAfterTime(time());
+            $contentExtractor = $this->factory->getContentExtractor(null);
+            foreach ($messagesToDelete as $messageToDelete) {
+                print_r($messageToDelete);
+                $result = $this->messages->deleteMessage($this->config->getToken(), $messageToDelete['chat_id'], $messageToDelete['message_id']);
+                print_r($result);
+                     $this->database->deleteOwnMessage($messageToDelete['message_id'], $messageToDelete['chat_id']);
+            }
+            return true;
+        }
         $offset = $this->database->readLastMessageOffset();
         $offset = (int) $offset + 1;
         echo $offset . PHP_EOL;
@@ -206,8 +224,14 @@ class BotController
             }
         }
 
-        if ($contentExtractor->isArabicString($contentExtractor->getMessageContent()) || $banInviter == 1) {
+        if ($contentExtractor->isArabicString($contentExtractor->getMessageContent()) 
+                || $contentExtractor->isArabicString($contentExtractor->getMessageDocumentContent())
+                || $contentExtractor->isForbiddenFileString($contentExtractor->getMessageDocumentContent())
+                || $banInviter == 1) {
             $this->banArabUser($contentExtractor, $contentExtractor->getUser());
+            if ($banInviter == 0) { // just normal message, not a new join
+                 $this->messages->deleteMessage($this->config->getToken(), $contentExtractor->getGroupId(), $contentExtractor->getMessageId());
+            }
             $result = true;
         }
         return $result;
@@ -237,10 +261,13 @@ class BotController
         $result = false;
         if ($contentExtractor->postContainsText()) {
         $mode = 'text'; 
-        $text = $contentExtractor->getChannelPostText() . $this->templates->getChannelPostFooter();
+        $text = $contentExtractor->getChannelPostText() . $this->templates->getChannelPostFooter( $contentExtractor->getChannelPostChannelId());
         } else {
             $mode = 'caption';
-            $text = $contentExtractor->getChannelPostCaption() . $this->templates->getChannelPostFooter();
+            $text = $contentExtractor->getChannelPostCaption() . $this->templates->getChannelPostFooter( $contentExtractor->getChannelPostChannelId());
+        }
+        if (in_array($contentExtractor->getAuthorSignature(), $this->config->getChannelNotEditableAuthors())) {
+            return $result;
         }
         $keyboard = $this->templates->getChannelFooterKeyboard();
         if ($mode == 'text') {
@@ -335,7 +362,7 @@ class BotController
     {
         $chatId = $contentExtractor->getGroupId();
         $id = $contentExtractor->getIdFromUser($bannedUser);
-        $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getBanArabUserText($bannedUser, $contentExtractor));
+        $this->sendChatMessage($chatId, $this->templates->getBanArabUserText($bannedUser, $contentExtractor), $contentExtractor, true, 10);
         $banTime = $contentExtractor->getMessageDate() + (17 * 24 * 60 * 60);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
         $this->messages->kickChatMember($this->config->getToken(), $chatId, $id, $banTime);
@@ -352,7 +379,7 @@ class BotController
         $spamData = $this->database->getSpamDataOnUser($id, $chatId);
         $spams = $contentExtractor->getPreviousSpamsFromSpamData($spamData);
         $allowedMessages = $contentExtractor->getPreviousAllowedMessagesFromSpamData($spamData);
-        $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getSpamUserText($bannedUser, $contentExtractor));
+        $this->sendChatMessage($chatId, $this->templates->getSpamUserText($bannedUser, $contentExtractor), $contentExtractor);
         $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
         $banTime = $contentExtractor->getMessageDate() + $this->getBanMinutes($spams, $allowedMessages);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
@@ -415,7 +442,7 @@ class BotController
         $spamData = $this->database->getSpamDataOnUser($id, $chatId);
         $spams = $contentExtractor->getPreviousSpamsFromSpamData($spamData);
         $allowedMessages = $contentExtractor->getPreviousAllowedMessagesFromSpamData($spamData);
-        $this->messages->sendMessage($this->config->getToken(), $chatId, $this->templates->getForwardUserText($bannedUser, $contentExtractor));
+        $this->sendChatMessage($chatId, $this->templates->getForwardUserText($bannedUser, $contentExtractor), $contentExtractor);
         $this->messages->deleteMessage($this->config->getToken(), $chatId, $contentExtractor->getMessageId());
         $banTime = $contentExtractor->getMessageDate() + $this->getBanMinutes($spams, $allowedMessages);
         $this->messages->restrictChatMember($this->config->getToken(), $chatId, $id, $banTime);
@@ -436,10 +463,9 @@ class BotController
         if ($contentExtractor->newUserIsDetected()) {
             $newUsers = $contentExtractor->getNewJoinedUsers();
             foreach ($newUsers as $newUser) {
-                $currentResult = $this->messages->sendMessage($this->config->getToken(),
-                        $contentExtractor->getGroupId(),
+                 $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(),
                         $this->templates->getWelcomeMessage($newUser, $contentExtractor,
-                                $isFriendGroupMessage));
+                                $isFriendGroupMessage), $contentExtractor);
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
             }
         }
@@ -460,8 +486,8 @@ class BotController
         if ($contentExtractor->userLeftIsDetected() && $contentExtractor->getUserId() != $this->config->getBotId()) {
             $leftUsers = $contentExtractor->getNewLeftUsers();
             foreach ($leftUsers as $leftUser) {
-                $currentResult = $this->messages->sendMessage($this->config->getToken(),
-                        $contentExtractor->getGroupId(), $this->templates->getLeaveMessage($leftUser, $contentExtractor));
+                $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(), 
+                        $this->templates->getLeaveMessage($leftUser, $contentExtractor), $contentExtractor);
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
             }
         }
@@ -474,6 +500,7 @@ class BotController
      * @param ContentExtractor $contentExtractor
      * @param bool $logMessage
      * @param string $deleteTime
+     * @return array
      */
     protected function sendChatMessage($chatId, string $text, ContentExtractor $contentExtractor, bool $logMessage = true, string $deleteTime = 'standard')
     {

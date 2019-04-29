@@ -158,6 +158,21 @@ class ContentExtractor
     }
 
     /**
+     * @return string 
+     */
+    public function getMessageDocumentContent()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['document']) && isset($message['document']['file_name'])) {
+            return $message['document']['file_name'];
+        }
+        return 0;
+    }
+
+    /**
      * @return string | null
      */
     public function getGroupName()
@@ -368,6 +383,19 @@ class ContentExtractor
     }
 
     /**
+     * @param type $string
+     * @return bool
+     */
+    public function isForbiddenFileString($string): bool
+    {
+        $forbidden = preg_match('/\.apk/u', $string);
+        if ($forbidden == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param type $text
      * @return bool
      */
@@ -520,6 +548,21 @@ class ContentExtractor
             return true;
         }
         return false;
+    }
+    
+        /**
+     * @return string | null
+     */
+    public function getAuthorSignature()
+    {
+        $message = $this->getChannelPostSection();
+        if (empty($message)) {
+            return null;
+        }
+        if (isset($message['author_signature'])) {
+            return $message['author_signature'];
+        }
+        return null;
     }
 
     /**
