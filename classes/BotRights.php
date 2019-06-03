@@ -52,8 +52,8 @@ class BotRights
         }
         return false;
     }
-    
-     /**
+
+    /**
      * @param string $groupId
      * @return bool
      */
@@ -114,6 +114,21 @@ class BotRights
         $groups = $this->configuration->getFriendGroupsWhereBotWorks();
         foreach ($groups as $group) {
             if ($group == $groupId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param string $personId
+     * @return boolean
+     */
+    public function postIsAllowedViaPrivateMessage($personId): bool
+    {
+        $persons = $this->configuration->getAuthorizedUsers();
+        foreach ($persons as $person) {
+            if ($person == $personId) {
                 return true;
             }
         }

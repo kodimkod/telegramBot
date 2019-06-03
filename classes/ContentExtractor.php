@@ -466,6 +466,30 @@ class ContentExtractor
     /**
      * @return bool
      */
+    public function isPrivateMessage(): bool
+    {
+        $message = $this->getMessageSection();
+        if (isset($message['chat']) && isset($message['chat']['type']) && $message['chat']['type'] == 'private') {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAudioFileMessage(): bool
+    {
+        $message = $this->getMessageSection();
+        if (isset($message['audio']) && isset($message['audio']['file_id'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
     public function isCallBack(): bool
     {
         if (!isset($this->content['message']) && isset($this->content['callback_query'])) {
@@ -499,6 +523,102 @@ class ContentExtractor
         }
         if (isset($message['chat']) && isset($message['chat']['id'])) {
             return $message['chat']['id'];
+        }
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getAudioFileId()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['audio']) && isset($message['audio']['file_id'])) {
+            return $message['audio']['file_id'];
+        }
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getAudioFileArtist()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['audio']) && isset($message['audio']['performer'])) {
+            return $message['audio']['performer'];
+        }
+        return '';
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getAudioFileTitle()
+    {
+        if (!empty($this->getFileCaption())) {
+            return $this->getFileCaption();
+        }
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['audio']) && isset($message['audio']['title'])) {
+            return $message['audio']['title'];
+        }
+        return $this->getFileCaption();
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getAudioFileTitleSafe()
+    {
+        $title = $this->getAudioFileTitle();
+        $title = str_replace('/', '', $title);
+        $title = str_replace('\\', '', $title);
+        $title = str_replace('.', '', $title);
+        $title = str_replace('*', '', $title);
+        $title = str_replace('?', '', $title);
+        $title = str_replace('"', '', $title);
+        $title = str_replace('<', '', $title);
+        $title = str_replace('>', '', $title);
+        $title = str_replace('|', '', $title);
+        $title = str_replace(':', '', $title);
+        $title = str_replace('\r', '', $title);
+        $title = str_replace('_', ' ', $title);
+      // echo 'before change ' . $title . PHP_EOL;
+        $title = preg_replace("/\r|\n/", "", $title);
+        $title = strlen($title) > 30 ? substr($title, 0, 30) : $title;
+        $encoding = mb_detect_encoding($title, mb_detect_order(), false);
+        if ($encoding == "UTF-8") {
+            $title = mb_convert_encoding($title, 'UTF-8', 'UTF-8');
+        }
+        $title = iconv(mb_detect_encoding($title, mb_detect_order(), false), "UTF-8//IGNORE", $title);
+        $title = str_replace('?', '', $title);
+
+        if (empty($title)) {
+            $title = $this->getAudioFileId();
+        }
+      //  echo 'after change ' . $title . PHP_EOL;
+        return $title;
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getFileCaption()
+    {
+        $message = $this->getMessageSection();
+        if (empty($message)) {
+            return;
+        }
+        if (isset($message['caption'])) {
+            return $message['caption'];
         }
     }
 
@@ -549,8 +669,8 @@ class ContentExtractor
         }
         return false;
     }
-    
-        /**
+
+    /**
      * @return string | null
      */
     public function getAuthorSignature()
@@ -618,6 +738,30 @@ class ContentExtractor
         if (isset($message['chat']) && isset($message['chat']['id'])) {
             return $message['chat']['id'];
         }
+    }
+
+    /**
+     * @param array $fileResult
+     * @return bool
+     */
+    public function audioPathIsFound($fileResult): bool
+    {
+        if (isset($fileResult['result']) && isset($fileResult['result']['file_path'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $fileResult
+     * @return string null
+     */
+    public function getAudioPath($fileResult)
+    {
+        if (isset($fileResult['result']) && isset($fileResult['result']['file_path'])) {
+            return $fileResult['result']['file_path'];
+        }
+        return;
     }
 
     /**

@@ -75,37 +75,12 @@ class BotConfig
     /**
      * @var string
      */
-    protected $footerLink1;
-
-    /**
-     * @var string
-     */
-    protected $footerLink2;
-
-    /**
-     * @var string
-     */
-    protected $footerLink3;
-
-    /**
-     * @var string
-     */
-    protected $footerText1;
-
-    /**
-     * @var string
-     */
-    protected $footerText2;
-
-    /**
-     * @var string
-     */
-    protected $footerText3;
-
-    /**
-     * @var string
-     */
     protected $footer3ChannelId;
+
+    /**
+     * @var string
+     */
+    protected $footer4ChannelId;
 
     /**
      * @var string
@@ -121,6 +96,41 @@ class BotConfig
      * @var array
      */
     protected $channelNotEditableAuthors;
+
+    /**
+     * @var array
+     */
+    protected $authorizedUsers;
+
+    /**
+     * @var string
+     */
+    protected $tempFilesDirectory;
+
+    /**
+     * @var string
+     */
+    protected $groupId3Tag;
+
+    /**
+     * @var string
+     */
+    protected $groupForRepostId;
+
+    /**
+     * @var string
+     */
+    protected $logUserId;
+
+    /**
+     * @var array
+     */
+    protected $channelFooterTexts;
+
+    /**
+     * @var array
+     */
+    protected $channelFooterLinks;
 
     public function __construct($appRoot)
     {
@@ -139,16 +149,18 @@ class BotConfig
         $this->ownGroupIds = $ini_array['ownGroupIds'];
         $this->friendGroupIds = $ini_array['friendGroupIds'];
         $this->friendWelcomeDiffersGroupIds = $ini_array['friendWelcomeDiffersGroupIds'];
-        $this->footerLink1 = $ini_array['footerLink1'];
-        $this->footerLink2 = $ini_array['footerLink2'];
-        $this->footerLink3 = $ini_array['footerLink3'];
-        $this->footerText1 = $ini_array['footerText1'];
-        $this->footerText2 = $ini_array['footerText2'];
-        $this->footerText3 = $ini_array['footerText3'];
         $this->footer3ChannelId = $ini_array['footer3ChannelId'];
+        $this->footer4ChannelId = $ini_array['footer4ChannelId'];
         $this->callbackButton1 = $ini_array['callbackButton1'];
         $this->callbackButton2 = $ini_array['callbackButton2'];
         $this->channelNotEditableAuthors = $ini_array['doNotProcessPostsFrom'];
+        $this->authorizedUsers = $ini_array['authorizedUsers'];
+        $this->tempFilesDirectory = $ini_array['tempFilesDirectory'];
+        $this->groupId3Tag = $ini_array['groupId3Tag'];
+        $this->groupForRepostId = $ini_array['groupForRepostId'];
+        $this->logUserId = $ini_array['logUserId'];
+        $this->channelFooterTexts = $ini_array['channelFooterTexts'];
+        $this->channelFooterLinks = $ini_array['channelFooterLinks'];
     }
 
     /**
@@ -263,53 +275,6 @@ class BotConfig
         return $this->friendWelcomeDiffersGroupIds;
     }
 
-    /**
-     * @return string
-     */
-    public function getFooterLink1(): string
-    {
-        return $this->footerLink1;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFooterLink2(): string
-    {
-        return $this->footerLink2;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFooterLink3(): string
-    {
-        return $this->footerLink3;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFooterText1(): string
-    {
-        return $this->footerText1;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFooterText2(): string
-    {
-        return $this->footerText2;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFooterText3(): string
-    {
-        return $this->footerText3;
-    }
 
     /**
      * @return string
@@ -317,6 +282,14 @@ class BotConfig
     public function getFooter3ChannelId(): string
     {
         return $this->footer3ChannelId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooter4ChannelId(): string
+    {
+        return $this->footer4ChannelId;
     }
 
     /**
@@ -341,6 +314,64 @@ class BotConfig
     public function getChannelNotEditableAuthors()
     {
         return $this->channelNotEditableAuthors;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAuthorizedUsers(): array
+    {
+        return $this->authorizedUsers;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTempFilesDirectory(): string
+    {
+        return $this->tempFilesDirectory;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGroupId3Tag(): string
+    {
+        return $this->groupId3Tag;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGroupForRepostId(): string
+    {
+        return $this->groupForRepostId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogUserId(): string
+    {
+        return $this->logUserId;
+    }
+
+    /**
+     * @param string $channelId
+     * @return string
+     */
+    public function getChannelFooterText(string $channelId): string
+    {
+        return isset($this->channelFooterTexts[$channelId]) ? $this->channelFooterTexts[$channelId] : 'channel text not configured';
+    }
+    
+       /**
+     * @param string $channelId
+     * @return string
+     */
+    public function getChannelFooterLink(string $channelId): string
+    {
+        return isset($this->channelFooterLinks[$channelId]) ? $this->channelFooterLinks[$channelId] : 'http://t.me';
     }
 
     /**
@@ -378,18 +409,6 @@ class BotConfig
         }
         if (!isset($settings['ownGroupIds']) || !is_array($settings['ownGroupIds'])) {
             throw new UnexpectedValueException('Wrong own groups, not array?');
-        }
-        if (!isset($settings['footerLink1'])) {
-            throw new UnexpectedValueException('No link for footer link 1.');
-        }
-        if (!isset($settings['footerText1'])) {
-            throw new UnexpectedValueException('No text for footer link 1.');
-        }
-        if (!isset($settings['footerLink2'])) {
-            throw new UnexpectedValueException('No link for footer link 2.');
-        }
-        if (!isset($settings['footerText2'])) {
-            throw new UnexpectedValueException('No text for footer link 2.');
         }
         if (!isset($settings['callbackButton1'])) {
             throw new UnexpectedValueException('No text for callback button 1');

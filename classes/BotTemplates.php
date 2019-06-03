@@ -173,16 +173,8 @@ class BotTemplates
      */
     public function getChannelPostFooter($channelId): string
     {
-        if ($channelId == $this->configuration->getFooter3ChannelId()) {
-            $footer = ' 
-️<a href="' . $this->configuration->getFooterLink3() . '">' . $this->configuration->getFooterText3() . '</a>';
-            return $footer;
-        }
         $footer = ' 
-️<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>
-<a href="' . $this->configuration->getFooterLink2() . '">' . $this->configuration->getFooterText2() . '</a>';
-        $footer = ' 
-️<a href="' . $this->configuration->getFooterLink1() . '">' . $this->configuration->getFooterText1() . '</a>';
+️<a href="' . $this->configuration->getChannelFooterLink($channelId) . '">' . $this->configuration->getChannelFooterText($channelId) . '</a>';
         return $footer;
     }
 
@@ -212,7 +204,7 @@ class BotTemplates
                 ],
                 [
                     [
-                           "text" => $this->configuration->getFooterText2(),
+                        "text" => $this->configuration->getFooterText2(),
                         "url" => $this->configuration->getFooterLink2()
                     ]
                 ]

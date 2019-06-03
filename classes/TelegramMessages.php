@@ -30,15 +30,16 @@ class TelegramMessages
      * @param string $token
      * @param int $chatId
      * @param string $text
+     * @param string $mode
      * @return type
      */
-    public function sendMessage(string $token, $chatId, string $text)
+    public function sendMessage(string $token, $chatId, string $text, $mode = 'Markdown')
     {
         $requestUrl = self::ApiUrl . $token . '/sendMessage';
         $params = [
             'chat_id' => $chatId,
             'text' => $text,
-            'parse_mode' => 'Markdown'
+            'parse_mode' => $mode
         ];
         $ch = curl_init($requestUrl);
         $this->setCurlOpts($ch, $requestUrl, $params);
@@ -140,8 +141,8 @@ class TelegramMessages
         curl_close($ch);
         return $this->decodeResult($result);
     }
-    
-        /**
+
+    /**
      * @param string $token
      * @param int $chatId
      * @param int $messageId
@@ -186,6 +187,59 @@ class TelegramMessages
         ];
         $ch = curl_init($requestUrl);
         $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
+
+    /**
+     * @param string $token
+     * @param string $fileId
+     * @return type
+     */
+    public function getFile(string $token, $fileId)
+    {
+        $requestUrl = self::ApiUrl . $token . '/getFile';
+        $params = [
+            'file_id' => $fileId
+        ];
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $this->decodeResult($result);
+    }
+
+    /**
+     * @param string $token
+     * @param int $chatId
+     * @param string $text
+     * @param string $mode
+     * @return type
+     */
+    public function sendMp3(string $token, $chatId, string $audioPath, $artist = null, $title = null, $caption = null, $mode = 'HTML')
+    {
+        $requestUrl = self::ApiUrl . $token . '/sendAudio';
+        $audio = new \CURLFile($audioPath);
+        $params = [
+            'chat_id' => $chatId,
+            'audio' => $audio,
+            'parse_mode' => $mode
+        ];
+        if (!empty($caption)) {
+            $params['caption'] = $caption;
+        }
+        if (!empty($artist)) {
+            $params['performer'] = $artist;
+        }
+        if (!empty($title)) {
+            $params['title'] = $title;
+        }
+        $ch = curl_init($requestUrl);
+        $this->setCurlOpts($ch, $requestUrl, $params);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type:multipart/form-data"]);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 300);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300); //timeout in seconds
         $result = curl_exec($ch);
         curl_close($ch);
         return $this->decodeResult($result);

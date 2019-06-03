@@ -15,10 +15,9 @@ class BotController
 
     const LOG_TYPE_UNRECOGNIZED = 0;
     const LOG_TYPE_NORMAL_MESSAGE = 1;
-
     const MODE_NORMAL = 0;
-    const MODE_DELETE_OWN  = 1;
-    
+    const MODE_DELETE_OWN = 1;
+
     /**
      * @var TelegramMessages
      */
@@ -79,7 +78,7 @@ class BotController
                 print_r($messageToDelete);
                 $result = $this->messages->deleteMessage($this->config->getToken(), $messageToDelete['chat_id'], $messageToDelete['message_id']);
                 print_r($result);
-                     $this->database->deleteOwnMessage($messageToDelete['message_id'], $messageToDelete['chat_id']);
+                $this->database->deleteOwnMessage($messageToDelete['message_id'], $messageToDelete['chat_id']);
             }
             return true;
         }
@@ -160,6 +159,10 @@ class BotController
             $result = $this->processChannelPost($contentExtractor);
             return $result;
         }
+        if ($contentExtractor->isPrivateMessage()) {
+            $result = $this->processPrivateMessage($contentExtractor);
+            return $result;
+        }
         if (!$this->rights->userIsExcludedFromBans($contentExtractor->getUserId()) &&
                 !$this->rights->contentIsExcludedFromBans($contentExtractor->getMessageContent()) &&
                 $this->rights->botWorksInThisGroup($contentExtractor->getGroupId())) {
@@ -224,13 +227,10 @@ class BotController
             }
         }
 
-        if ($contentExtractor->isArabicString($contentExtractor->getMessageContent()) 
-                || $contentExtractor->isArabicString($contentExtractor->getMessageDocumentContent())
-                || $contentExtractor->isForbiddenFileString($contentExtractor->getMessageDocumentContent())
-                || $banInviter == 1) {
+        if ($contentExtractor->isArabicString($contentExtractor->getMessageContent()) || $contentExtractor->isArabicString($contentExtractor->getMessageDocumentContent()) || $contentExtractor->isForbiddenFileString($contentExtractor->getMessageDocumentContent()) || $banInviter == 1) {
             $this->banArabUser($contentExtractor, $contentExtractor->getUser());
             if ($banInviter == 0) { // just normal message, not a new join
-                 $this->messages->deleteMessage($this->config->getToken(), $contentExtractor->getGroupId(), $contentExtractor->getMessageId());
+                $this->messages->deleteMessage($this->config->getToken(), $contentExtractor->getGroupId(), $contentExtractor->getMessageId());
             }
             $result = true;
         }
@@ -260,28 +260,120 @@ class BotController
     {
         $result = false;
         if ($contentExtractor->postContainsText()) {
-        $mode = 'text'; 
-        $text = $contentExtractor->getChannelPostText() . $this->templates->getChannelPostFooter( $contentExtractor->getChannelPostChannelId());
+            $mode = 'text';
+            $text = $contentExtractor->getChannelPostText() . $this->templates->getChannelPostFooter($contentExtractor->getChannelPostChannelId());
         } else {
             $mode = 'caption';
-            $text = $contentExtractor->getChannelPostCaption() . $this->templates->getChannelPostFooter( $contentExtractor->getChannelPostChannelId());
+            $text = $contentExtractor->getChannelPostCaption() . $this->templates->getChannelPostFooter($contentExtractor->getChannelPostChannelId());
         }
         if (in_array($contentExtractor->getAuthorSignature(), $this->config->getChannelNotEditableAuthors())) {
             return $result;
         }
         $keyboard = $this->templates->getChannelFooterKeyboard();
         if ($mode == 'text') {
-        $resultText = $this->messages->editMessageText($this->config->getToken(),
-                $contentExtractor->getChannelPostChannelId(),
-                $contentExtractor->getChannelPostId(), $text, $keyboard);
+            $resultText = $this->messages->editMessageText($this->config->getToken(),
+                    $contentExtractor->getChannelPostChannelId(),
+                    $contentExtractor->getChannelPostId(), $text, $keyboard);
         } else {
             $resultText = $this->messages->editMessageCaption($this->config->getToken(),
-                $contentExtractor->getChannelPostChannelId(),
-                $contentExtractor->getChannelPostId(), $text, $keyboard);
+                    $contentExtractor->getChannelPostChannelId(),
+                    $contentExtractor->getChannelPostId(), $text, $keyboard);
         }
         if (isset($resultText['ok']) && $resultText['ok'] == true) {
             $result = true;
         }
+        return $result;
+    }
+
+    /**
+     * @param ContentExtractor $contentExtractor 
+     * @return bool
+     */
+    protected function processPrivateMessage($contentExtractor): bool
+    {
+        setlocale(LC_ALL, "en_US.UTF-8");
+        $result = false;
+        $personId = $contentExtractor->getGroupId();
+        $text = 'Сообщение обработано.';
+        $serverAnswer = '';
+        if ($this->rights->postIsAllowedViaPrivateMessage($personId) && $contentExtractor->isAudioFileMessage()) {
+            $text = 'Опознан авторизированный пользователь и сообщение аудио.';
+              $this->messages->sendMessage($this->config->getToken(),
+                $this->config->getLogUserId(), 'Пробую скачать и загрузить музыку ' . $contentExtractor->getAudioFileArtist() . ' - ' . $contentExtractor->getAudioFileTitle()  , 'HTML');
+            $resultFile = $this->messages->getFile($this->config->getToken(), $contentExtractor->getAudioFileId());
+            var_dump($resultFile);
+            if ($contentExtractor->audioPathIsFound($resultFile)) {
+
+                $filename = empty($contentExtractor->getAudioFileTitle()) ? $contentExtractor->getAudioFileId() : $contentExtractor->getAudioFileTitleSafe();
+                $path = $this->config->getTempFilesDirectory() . 'telegram ' . $this->config->getGroupId3Tag() . ' - ' . $filename . '.mp3';
+          //      var_dump($path);
+         //       echo 'а теперь title' . PHP_EOL;
+           //     var_dump($contentExtractor->getAudioFileTitleSafe());
+                $resultDl = $this->downloadFile($this->config->getToken(),
+                        $path,
+                        $contentExtractor->getAudioPath($resultFile));
+                $resultDecoded = json_decode($resultDl, true);
+                $resultText = empty($resultDecoded) ? $resultDl : $resultDecoded;
+                if (isset($resultDecoded['ok']) || strlen($resultDl) < 10000) {
+                    $text = 'Ошибка загрузки: ' . $resultDl;
+                } else {
+                    $this->messages->sendMessage($this->config->getToken(),
+                            $personId, 'Отсылаю музыку в канал, подождите...', 'HTML');
+                    $text = 'Музыка загружена и отправлена в канал. ';
+                    echo 'sending ' . $contentExtractor->getAudioFileId() . PHP_EOL;
+                    $resultSent = $this->messages->sendMp3($this->config->getToken(),
+                            $this->config->getGroupForRepostId(), $path, $this->config->getGroupId3Tag(),
+                            $contentExtractor->getAudioFileTitle(),
+                            $contentExtractor->getFileCaption() . $this->templates->getChannelPostFooter($this->config->getGroupForRepostId())
+                    );
+                //    var_dump($resultSent);
+                       $serverAnswer = " \n Ответ телеграма: " .  json_encode($resultSent);
+                }
+                if (file_exists($path)) {
+                    unlink($path); // remove from temp, not needed anymore
+                }
+            } else {
+                $text = 'Не найден путь к аудиофайлу на сервере. Что-то пошло не так.' . json_encode($resultFile);
+            }
+        }
+        $resultText = $this->messages->sendMessage($this->config->getToken(),
+                $personId, $text, 'HTML');
+
+                $this->messages->sendMessage($this->config->getToken(),
+                $this->config->getLogUserId(), "[" . $contentExtractor->getGroupId() . "](tg://user?id=" . $contentExtractor->getGroupId() . ")" .
+                        ' @' . $contentExtractor->getUserName() . ' ' .
+                        $contentExtractor->getUserFullName() . 
+                        ' : '.      $contentExtractor->getMessageContent() , 'Markdown');
+        $this->messages->sendMessage($this->config->getToken(),
+                $this->config->getLogUserId(),  "<a href='tg://user?id=" . $contentExtractor->getGroupId() . "'>" . $contentExtractor->getUserFullName() ."</a>" . 
+                $contentExtractor->getAudioFileArtist() . ' - ' . $contentExtractor->getAudioFileTitle() . ' ' . $serverAnswer , 'HTML');
+        if (isset($resultText['ok']) && $resultText['ok'] == true) {
+            $result = true;
+        }
+        return $result;
+    }
+
+    /**
+     * @param string $token
+     * @param string $path
+     * @param string $remotePath
+     * @return string
+     */
+    protected function downloadFile(string $token, string $path, $remotePath)
+    {
+        $fileApiUrl = 'https://api.telegram.org/file/bot';
+        $requestUrl = $fileApiUrl . $token . '/' . $remotePath;
+        $fp = fopen($path, 'w+');
+        $ch = curl_init($requestUrl);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 300);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300); //timeout in seconds
+        $result = curl_exec($ch);
+        fwrite($fp, $result);
+        fclose($fp);
+        curl_close($ch);
         return $result;
     }
 
@@ -463,7 +555,7 @@ class BotController
         if ($contentExtractor->newUserIsDetected()) {
             $newUsers = $contentExtractor->getNewJoinedUsers();
             foreach ($newUsers as $newUser) {
-                 $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(),
+                $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(),
                         $this->templates->getWelcomeMessage($newUser, $contentExtractor,
                                 $isFriendGroupMessage), $contentExtractor);
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
@@ -486,7 +578,7 @@ class BotController
         if ($contentExtractor->userLeftIsDetected() && $contentExtractor->getUserId() != $this->config->getBotId()) {
             $leftUsers = $contentExtractor->getNewLeftUsers();
             foreach ($leftUsers as $leftUser) {
-                $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(), 
+                $currentResult = $this->sendChatMessage($contentExtractor->getGroupId(),
                         $this->templates->getLeaveMessage($leftUser, $contentExtractor), $contentExtractor);
                 $result &= $contentExtractor->sendMessageResultIsSuccess($currentResult);
             }
